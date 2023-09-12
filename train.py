@@ -108,9 +108,7 @@ class Trainer:
                         t.set_postfix(loss=running_loss / count, lr=self.optimizer.param_groups[0]['lr'])
                         t.update(1)
 
-                        break
                 self.scheduler.step()
-                
                 self.loss = running_loss / len(self.train_loader)
                 if self.use_wandb: wandb.log({"loss": self.loss}, epoch)
                 self.save_model(self.model, 
@@ -254,6 +252,7 @@ if __name__ == "__main__":
     device_ids = [i for i in range(torch.cuda.device_count())]
     log_dir = "logs"
     project_name = "test1"
+    wandb_name = "place_classfication"
     
     train_path = "datasets/pre/train"
     val_path = "datasets/pre/val"
@@ -282,6 +281,7 @@ if __name__ == "__main__":
         val_dataset=val_dataset,
         log_dir=log_dir,
         project_name=project_name,
+        wandb_name=wandb_name,
     )
     
     trainer.train()
