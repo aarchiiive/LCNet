@@ -25,6 +25,7 @@ class Trainer:
                  epochs: int,
                  batch_size: int,
                  num_classes: int,
+                 num_workers: int,
                  device: torch.device,
                  device_ids: Sequence[int],
                  train_dataset: Dataset,
@@ -59,9 +60,9 @@ class Trainer:
         self.scaler = torch.cuda.amp.GradScaler()
         self.criterion = nn.CrossEntropyLoss()
         self.optimizer = torch.optim.AdamW(self.model.parameters(), lr)
-        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=epochs // 5)
-        self.train_loader = DataLoader(train_dataset, batch_size, shuffle=True)
-        self.val_loader = DataLoader(val_dataset, batch_size, shuffle=False)
+        self.scheduler = torch.optim.lr_scheduler.StepLR(self.optimizer, step_size=epochs // 20)
+        self.train_loader = DataLoader(train_dataset, batch_size, shuffle=True, num_workers=num_workers)
+        self.val_loader = DataLoader(val_dataset, batch_size, shuffle=False, num_workers=num_workers)
         
         if device_ids:
             self.model = DataParallel(self.model, device_ids)
@@ -221,8 +222,8 @@ class LocationDataset(Dataset):
     def __getitem__(self, i: int) -> Any:
         if self.images[i] not in self.cache.keys():
             image = Image.open(self.images[i])
-            image = self.to_tensor(image)
-            image = self.crop(image).type(torch.uint8)
+            image = self.to_tensor(image).type(torch.uint8)
+            # image = self.crop(image).type(torch.uint8)
             self.cache[self.images[i]] = image
         else:
             image = self.cache[self.images[i]]
@@ -246,17 +247,18 @@ if __name__ == "__main__":
     model_name = "resnet34"
     lr = 0.0005
     epochs = 200
-    batch_size = 100
+    batch_size = 400
     num_classes = 8
+    num_workers = 2
     device = "cuda:0"
     device_ids = [i for i in range(torch.cuda.device_count())]
     log_dir = "logs"
-    project_name = "test1"
-    wandb_name = "place_classfication"
+    project_name = "test2"
+    wandb_name = "place_recognition"
     
     train_path = "datasets/pre/train"
     val_path = "datasets/pre/val"
-    imgsz = 256
+    imgsz = 512
     
     transform = transforms.Compose([
         transforms.RandomAffine((-10, 10), (0.05, 0.1)),
@@ -275,6 +277,7 @@ if __name__ == "__main__":
         epochs=epochs,
         batch_size=batch_size,
         num_classes=num_classes,
+        num_workers=num_workers,
         device=device,
         device_ids=device_ids,
         train_dataset=train_dataset,
