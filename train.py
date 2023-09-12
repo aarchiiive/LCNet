@@ -253,8 +253,8 @@ if __name__ == "__main__":
     device = "cuda:0"
     device_ids = [i for i in range(torch.cuda.device_count())]
     log_dir = "logs"
-    project_name = "test2"
-    wandb_name = "place_recognition"
+    project_name = "place_recognition"
+    wandb_name = "1"
     
     train_path = "datasets/pre/train"
     val_path = "datasets/pre/val"
